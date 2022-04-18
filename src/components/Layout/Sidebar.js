@@ -121,7 +121,7 @@ class Sidebar extends React.Component {
                 alt=""
               />
               <span className="text-white">
-                Reduction <FaGithub />
+                ShopKeeping <FaGithub />
               </span>
             </SourceLink>
           </Navbar>

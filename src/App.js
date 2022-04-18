@@ -3,7 +3,9 @@ import GAListener from 'components/GAListener';
 import { EmptyLayout, LayoutRoute, MainLayout } from 'components/Layout';
 import PageSpinner from 'components/PageSpinner';
 import AuthPage from 'pages/AuthPage';
+import AuthForgetPasswordPage from 'pages/AuthForgetPasswordPage'
 import React from 'react';
+import AuthLoginPage from 'pages/AuthLoginPage';
 import componentQueries from 'react-component-queries';
 import { BrowserRouter, Redirect, Route, Switch } from 'react-router-dom';
 import './styles/reduction.scss';
@@ -40,7 +42,15 @@ class App extends React.Component {
               path="/login"
               layout={EmptyLayout}
               component={props => (
-                <AuthPage {...props} authState={STATE_LOGIN} />
+                <AuthLoginPage {...props} authState={STATE_LOGIN} />
+              )}
+            />
+            <LayoutRoute
+              exact
+              path="/forgetPassword"
+              layout={EmptyLayout}
+              component={props => (
+                <AuthForgetPasswordPage {...props} authState={STATE_LOGIN} />
               )}
             />
             <LayoutRoute
