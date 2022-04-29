@@ -64,10 +64,21 @@ class Properties extends React.Component {
         this.setState({modal_newProperty:true});
     }
     closeModal=()=>{
-        this.setState({modal_newProperty:false});
+        this.setState({modal_newProperty:false,modal_editProperty:false});
     }
     closeSuccessModal=()=>{
        this.setState({modal_addedSuccess:false})
+    }
+    EditProperty=()=>{
+        let data={name:'',address:'',pincode:''};
+        let {propertiesList,selectedIndex,selectedName,selectedAddress,selectedPincode}=this.state;
+           data.name=selectedName;
+           data.address=selectedAddress;
+           data.pincode=selectedPincode;
+           propertiesList[selectedIndex]=data;
+           this.setState({propertiesList:propertiesList,modal_editProperty:false});
+           alert("Edited Successfully");
+
     }
     addProperty=()=>{
         let newPropertyData={name:this.state.name,address:this.state.address,pincode:this.state.pincode};
@@ -78,12 +89,23 @@ class Properties extends React.Component {
     }
     handleEditProperty=(index)=>{
           let {modal_editProperty,propertiesList}=this.state;
-          this.setState({modal_editProperty:true, selectedName:propertiesList[index].name,selectedAddress:propertiesList[index].address,selectedPincode:propertiesList[index]});
-
+          this.setState({modal_editProperty:true, selectedName:propertiesList[index].name,selectedAddress:propertiesList[index].address,selectedPincode:propertiesList[index].pincode,selectedIndex:index});
+    }
+    handleEditChange=(event,data)=>{
+             if(data==='name') this.setState({selectedName:event.target.value});
+             else if(data==='address') this.setState({selectedAddress:event.target.value});
+             else if(data==='pincode') this.setState({selectedPincode:event.target.value});
+    }
+    handleRemove=()=>{
+        let {selectedIndex,propertiesList,selectedName}=this.state;
+        propertiesList=propertiesList.filter(n=>n.name!==selectedName);
+        console.log(selectedIndex);
+        this.setState({modal_editProperty:false,propertiesList:propertiesList})
+        alert("Property is removed successfully!!")
     }
     render() {
-        let {modal_newProperty,name,address,pincode,modal_addedSuccess,propertiesList,index,modal_editProperty}=this.state;
-        console.log(index);
+        let {modal_newProperty,name,address,pincode,modal_addedSuccess,propertiesList,index,modal_editProperty,selectedName,selectedAddress,selectedPincode}=this.state;
+        console.log(selectedPincode);
       return (
         <div className="p-5">
             <div>
@@ -94,21 +116,27 @@ class Properties extends React.Component {
                     isOpen={modal_editProperty}
                     className={this.props.className}>
                         <ModalHeader>
-                           Edit Property
-                        </ModalHeader>
+                            Edit Property   
+                        </ModalHeader>           
+                        <div>
+                            <div style={{float:"right"}}>
+                            <Button className="m-2" color="warning">Request For Service</Button>
+                            <Button onClick={this.handleRemove}>Remove</Button>
+                                </div>
+                        </div>
                         <ModalBody>
                             <FormGroup>
                                 <div style={{marginTop:"10px"}}>
                                     <Label htmlFor="PropertyName">Property Name<Label style={{color:"red"}}>*</Label></Label>
-                                    <Input className={`form-control shadow-none `} onChange={(event)=>this.handleChange(event,'name')} autocomplete="off"/>
+                                    <Input className={`form-control shadow-none `} value={selectedName} onChange={(event)=>this.handleEditChange(event,'name')} />
                                 </div>
                                 <div style={{marginTop:"10px"}}>
                                     <Label htmlFor="Address">Address<Label style={{color:"red"}}>*</Label></Label>
-                                    <Input className={`form-control shadow-none `}  onChange={(event)=>this.handleChange(event,'address')}  autocomplete="off"/>
+                                    <Input className={`form-control shadow-none `} value={selectedAddress} onChange={(event)=>this.handleEditChange(event,'address')}  />
                                 </div>
                                 <div style={{marginTop:"10px"}}>
                                     <Label htmlFor="Pincode">Pincode<Label style={{color:"red"}}>*</Label></Label>
-                                    <Input className={`form-control shadow-none `}  onChange={(event)=>this.handleChange(event,'pincode')}  autocomplete="off"/>
+                                    <Input className={`form-control shadow-none `} value={selectedPincode} onChange={(event)=>this.handleEditChange(event,'pincode')}  />
                                 </div>
                             </FormGroup>
                             <br />
@@ -119,8 +147,8 @@ class Properties extends React.Component {
                                 onClick={this.closeModal}>
                                     Cancel
                             </Button>
-                            <Button color="success" onClick={this.addProperty}>
-                                Add
+                            <Button color="success" onClick={this.EditProperty}>
+                                Edit
                             </Button>
                         </ModalFooter>
                 </Modal>

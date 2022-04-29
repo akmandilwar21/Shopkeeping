@@ -4,6 +4,7 @@ import { EmptyLayout, LayoutRoute, MainLayout } from 'components/Layout';
 import PageSpinner from 'components/PageSpinner';
 import AuthPage from 'pages/AuthPage';
 import Properties from './pages/Properties';
+import OrderSummary from './pages/OrderSummary';
 import AuthForgetPasswordPage from 'pages/AuthForgetPasswordPage'
 import React from 'react';
 import AuthLoginPage from 'pages/AuthLoginPage';
@@ -69,6 +70,7 @@ class App extends React.Component {
                 <Route exact path="/login-modal" component={AuthModalPage} />
                 <Route exact path="/buttons" component={ButtonPage} />
                 <Route exact path="/properties" component={Properties} />
+                <Route exact path="/orders" component={OrderSummary} />
                 <Route exact path="/cards" component={CardPage} />
                 <Route exact path="/widgets" component={WidgetPage} />
                 <Route exact path="/typography" component={TypographyPage} />
