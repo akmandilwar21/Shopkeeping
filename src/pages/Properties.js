@@ -1,11 +1,15 @@
 import React, { useState } from "react";
-import Page from 'components/Page';
+import Dropdown from 'react-dropdown';
+import 'react-dropdown/style.css';
+import DatePicker from 'react-date-picker';
+import {BsTrashFill} from 'react-icons/bs';
+import { AiFillEdit } from 'react-icons/ai'
 import {UncontrolledButtonDropdown, DropdownToggle,DropdownItem,DropdownMenu, Button,
     ButtonGroup,
     Card,
     CardBody,
     CardHeader,
-    Col, Modal, ModalHeader, ModalFooter, ModalBody, Row, FormGroup,Label,Input,Table} from 'reactstrap'
+    Col, Modal, ModalHeader, ModalFooter, ModalBody, Row, FormGroup,Label,Input,Table,} from 'reactstrap'
 class Properties extends React.Component {
     state = {
       modal: false,
@@ -15,6 +19,8 @@ class Properties extends React.Component {
       modal_backdrop: false,
       modal_nested_parent: false,
       modal_nested: false,
+      modal_serviceRequest:false,
+      modal_ServiceForRequest:false,
       selectedIndex:0,
       backdrop: true,
       name:'',
@@ -22,7 +28,13 @@ class Properties extends React.Component {
       pincode:'',
       selectedName:'',
       selectedAddress:'',
+      selectedTypeofService:'',
       selectedPincode:'',
+      selectedTime:'',
+      selectedStaff:'',
+      selectedDate:'',
+      additionalDetail:'',
+      typeOfService:["House Keeping", "Cleaning", "Gardening", "Car Cleaning"],
       propertiesList:[{name:"Alishan", address:"Noida", pincode:"201309"},
                       {name:"Mannat", address:"Mumbai", pincode:"123456"},
                       {name:"The Luxuary House", address:"Delhi", pincode:"678082"},
@@ -30,6 +42,12 @@ class Properties extends React.Component {
                       {name:"The Taj Residency", address:"Noida", pincode:"201309"},
                       {name:"A1 House", address:"Noida", pincode:"201309"},
     ],
+    staffList:[{type:'House Keeping', name:["Abhi", "Amar","Amit"]},
+               {type:'Cleaning', name:['Rocky','Yash','Ravi']}, 
+               {type:'Gardening', name:['Babloo', 'Raju', 'Hritik']},
+               {type:'Car Cleaning', name:["James", "Jelly","Micheal"]}
+              ],
+    rightStaff:[]
     };
     handleChange= (event,data)=>{
         console.log(event.target.value,data);
@@ -64,7 +82,7 @@ class Properties extends React.Component {
         this.setState({modal_newProperty:true});
     }
     closeModal=()=>{
-        this.setState({modal_newProperty:false,modal_editProperty:false});
+        this.setState({modal_newProperty:false,modal_editProperty:false,modal_serviceRequest:false,modal_ServiceForRequest:false});
     }
     closeSuccessModal=()=>{
        this.setState({modal_addedSuccess:false})
@@ -96,16 +114,42 @@ class Properties extends React.Component {
              else if(data==='address') this.setState({selectedAddress:event.target.value});
              else if(data==='pincode') this.setState({selectedPincode:event.target.value});
     }
-    handleRemove=()=>{
-        let {selectedIndex,propertiesList,selectedName}=this.state;
+    handleServiceRequest=(index)=>{
+        let {propertiesList}=this.state;
+        this.setState({modal_editProperty:true, selectedName:propertiesList[index].name,selectedAddress:propertiesList[index].address,selectedPincode:propertiesList[index].pincode,selectedIndex:index,modal_serviceRequest:true});
+    }
+    handleRemove=(selectedName)=>{
+        let {propertiesList}=this.state;
         propertiesList=propertiesList.filter(n=>n.name!==selectedName);
-        console.log(selectedIndex);
+        //console.log(selectedIndex);
         this.setState({modal_editProperty:false,propertiesList:propertiesList})
-        alert("Property is removed successfully!!")
+        
+    }
+    handleRequest=()=>{
+        console.log(this.state.selectedName)
+        this.setState({modal_serviceRequest:false,modal_ServiceForRequest:true,modal_editProperty:false});
+    }
+    handleSelectService=service=>{
+        this.setState({selectedTypeofService:service.value});
+        let {staffList}=this.state;
+        let rightStaff=staffList.filter(n=>n.type===service.value);
+        console.log(rightStaff);
+        this.setState({rightStaff:rightStaff[0].name})
+    }
+    onChange=(event,type)=>{
+    if(type==="date")
+        this.setState({selectedDate:event.target.value})
+    else if(type==="time") this.setState({selectedTime:event.target.value})
+    }
+    handleAdditionalChange=event=>{
+        this.setState({additionalDetail:event.target.value})
+    }
+    handleSubmitRequest=()=>{
+        this.setState({modal_ServiceForRequest:false})
     }
     render() {
-        let {modal_newProperty,name,address,pincode,modal_addedSuccess,propertiesList,index,modal_editProperty,selectedName,selectedAddress,selectedPincode}=this.state;
-        console.log(selectedPincode);
+        let {modal_newProperty,name,address,selectedDate,pincode,modal_addedSuccess,propertiesList,rightStaff,additionalDetail,modal_editProperty,selectedName,selectedTime,selectedStaff,selectedAddress,selectedPincode,modal_serviceRequest,modal_ServiceForRequest,typeOfService,selectedTypeofService}=this.state;
+        console.log(rightStaff);
       return (
         <div className="p-5">
             <div>
@@ -113,30 +157,37 @@ class Properties extends React.Component {
             </div>
             <Row>
             <Modal
-                    isOpen={modal_editProperty}
-                    className={this.props.className}>
+                isOpen={modal_ServiceForRequest}
+                className={this.props.className}
+                >
                         <ModalHeader>
-                            Edit Property   
-                        </ModalHeader>           
-                        <div>
-                            <div style={{float:"right"}}>
-                            <Button className="m-2" color="warning">Request For Service</Button>
-                            <Button onClick={this.handleRemove}>Remove</Button>
-                                </div>
-                        </div>
+                        Request for a Service
+                        </ModalHeader>
                         <ModalBody>
                             <FormGroup>
                                 <div style={{marginTop:"10px"}}>
                                     <Label htmlFor="PropertyName">Property Name<Label style={{color:"red"}}>*</Label></Label>
-                                    <Input className={`form-control shadow-none `} value={selectedName} onChange={(event)=>this.handleEditChange(event,'name')} />
+                                    <Input className={`form-control shadow-none `} value={selectedName} disabled onChange={(event)=>this.handleChange(event,'name')}/>
+                                </div>
+                                <div style={{marginTop:"20px"}}>
+                                    <Label htmlFor="TypeOfService">Type of Service<Label style={{color:"red"}}>*</Label></Label>
+                                    <Dropdown options={typeOfService} onChange={this.handleSelectService} value={selectedTypeofService} placeholder="Select Type of Service" />                                    
                                 </div>
                                 <div style={{marginTop:"10px"}}>
-                                    <Label htmlFor="Address">Address<Label style={{color:"red"}}>*</Label></Label>
-                                    <Input className={`form-control shadow-none `} value={selectedAddress} onChange={(event)=>this.handleEditChange(event,'address')}  />
+                                    <Label htmlFor="date">Select Date<Label style={{color:"red"}}>*</Label></Label>
+                                    <Input type="date" className={`form-control shadow-none `} value={selectedDate}  onChange={(event)=>this.onChange(event,"date")}/>              
                                 </div>
                                 <div style={{marginTop:"10px"}}>
-                                    <Label htmlFor="Pincode">Pincode<Label style={{color:"red"}}>*</Label></Label>
-                                    <Input className={`form-control shadow-none `} value={selectedPincode} onChange={(event)=>this.handleEditChange(event,'pincode')}  />
+                                    <Label htmlFor="time">Select Time<Label style={{color:"red"}}>*</Label></Label>
+                                    <Input type="time" className={`form-control shadow-none `} value={selectedTime}  onChange={(event)=>this.onChange(event,"time")}/>              
+                                </div>
+                                <div style={{marginTop:"20px"}}>
+                                    <Label htmlFor="staff">Select Staff<Label style={{color:"red"}}>*</Label></Label>
+                                    <Dropdown options={rightStaff} value={selectedStaff} disabled={rightStaff.length===0 ? true :false}  placeholder="Select Staff" />                                    
+                                </div>
+                                <div style={{marginTop:"10px"}}>
+                                    <Label htmlFor="additionDetail">Additional Details</Label>
+                                    <Input type="textarea" className={`form-control shadow-none `} value={additionalDetail} onChange={(event)=>this.handleAdditionalChange(event)} placeholder="Write Some importent Details"/>
                                 </div>
                             </FormGroup>
                             <br />
@@ -147,9 +198,45 @@ class Properties extends React.Component {
                                 onClick={this.closeModal}>
                                     Cancel
                             </Button>
-                            <Button color="success" onClick={this.EditProperty}>
-                                Edit
+                            <Button color="success" onClick={this.handleSubmitRequest}>
+                                Request
                             </Button>
+                        </ModalFooter>
+                </Modal>
+            <Modal
+                    isOpen={modal_editProperty}
+                    className={this.props.className}>
+                        <ModalHeader>
+                            {modal_serviceRequest ? "Request for a Service" :"Edit Property"}   
+                        </ModalHeader>           
+                       
+                        <ModalBody>
+                            <FormGroup>
+                                <div style={{marginTop:"10px"}}>
+                                    <Label htmlFor="PropertyName">Property Name<Label style={{color:"red"}}>*</Label></Label>
+                                    <Input className={`form-control shadow-none `} disabled={modal_serviceRequest ? true:false} value={selectedName} onChange={(event)=>this.handleEditChange(event,'name')} />
+                                </div>
+                                <div style={{marginTop:"10px"}}>
+                                    <Label htmlFor="Address">Address<Label style={{color:"red"}}>*</Label></Label>
+                                    <Input className={`form-control shadow-none `} disabled={modal_serviceRequest ? true:false} value={selectedAddress} onChange={(event)=>this.handleEditChange(event,'address')}  />
+                                </div>
+                                <div style={{marginTop:"10px"}}>
+                                    <Label htmlFor="Pincode">Pincode<Label style={{color:"red"}}>*</Label></Label>
+                                    <Input className={`form-control shadow-none `} disabled={modal_serviceRequest ? true:false} value={selectedPincode} onChange={(event)=>this.handleEditChange(event,'pincode')}  />
+                                </div>
+                            </FormGroup>
+                            <br />
+                        </ModalBody>
+                        <ModalFooter>                   
+                            <Button
+                                color="secondary"
+                                onClick={this.closeModal}>
+                                    Cancel
+                            </Button>
+                            {modal_serviceRequest ? <Button className="m-2" color="warning" onClick={()=>this.handleRequest()}>Request For Service</Button> :<Button color="success" onClick={this.EditProperty}>
+                                Save
+                            </Button>}
+                            
                         </ModalFooter>
                 </Modal>
             <Modal
@@ -175,15 +262,15 @@ class Properties extends React.Component {
                             <FormGroup>
                                 <div style={{marginTop:"10px"}}>
                                     <Label htmlFor="PropertyName">Property Name<Label style={{color:"red"}}>*</Label></Label>
-                                    <Input className={`form-control shadow-none `} value={name} onChange={(event)=>this.handleChange(event,'name')} autocomplete="off"/>
+                                    <Input className={`form-control shadow-none `} value={name} onChange={(event)=>this.handleChange(event,'name')}/>
                                 </div>
                                 <div style={{marginTop:"10px"}}>
                                     <Label htmlFor="Address">Address<Label style={{color:"red"}}>*</Label></Label>
-                                    <Input className={`form-control shadow-none `} value={address} onChange={(event)=>this.handleChange(event,'address')}  autocomplete="off"/>
+                                    <Input className={`form-control shadow-none `} value={address} onChange={(event)=>this.handleChange(event,'address')} />
                                 </div>
                                 <div style={{marginTop:"10px"}}>
                                     <Label htmlFor="Pincode">Pincode<Label style={{color:"red"}}>*</Label></Label>
-                                    <Input className={`form-control shadow-none `} value={pincode} onChange={(event)=>this.handleChange(event,'pincode')}  autocomplete="off"/>
+                                    <Input className={`form-control shadow-none `} value={pincode} onChange={(event)=>this.handleChange(event,'pincode')} />
                                 </div>
                             </FormGroup>
                             <br />
@@ -203,22 +290,25 @@ class Properties extends React.Component {
        
             {propertiesList.length ? 
               
-                    <Table className='border' responsive style={{marginTop:"50px"}}>
+                    <Table className='border' responsive style={{marginTop:"50px"}} hover>
                 <thead>
                   <tr style={{background:"black",color:"white"}}>
                     <th style={{textAlign:"center"}}>Serial Number</th>
                     <th style={{textAlign:"center"}}>Property Name</th>
                     <th style={{textAlign:"center"}}>Address</th>
                     <th style={{textAlign:"center"}}>Pincode</th>
+                    <th style={{textAlign:"center"}}>Action</th>
                   </tr>
                 </thead>
                 <tbody>
                     {propertiesList.map((n,index)=>{ return(
-                        <tr style={{cursor:"pointer"}} onClick={()=>this.handleEditProperty(index)}>
-                            <td style={{textAlign:"center"}}>{index+1}</td>
-                            <td style={{textAlign:"center"}}>{n.name}</td>
-                            <td style={{textAlign:"center"}}>{n.address}</td>
-                            <td style={{textAlign:"center"}}>{n.pincode}</td>
+                        <tr style={{cursor:"pointer"}} >
+                            <td style={{textAlign:"center"}} onClick={()=>this.handleServiceRequest(index)}>{index+1}</td>
+                            <td style={{textAlign:"center"}} onClick={()=>this.handleServiceRequest(index)}>{n.name}</td>
+                            <td style={{textAlign:"center"}} onClick={()=>this.handleServiceRequest(index)}>{n.address}</td>
+                            <td style={{textAlign:"center"}} onClick={()=>this.handleServiceRequest(index)}>{n.pincode}</td>
+                            <td style={{textAlign:"center"}}><AiFillEdit style={{marginRight:"10%"}} onClick={()=>this.handleEditProperty(index)} /><BsTrashFill onClick={()=>this.handleRemove(n.name)}/></td>
+
                         </tr>)
                       })}
                 </tbody>
