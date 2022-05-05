@@ -3,7 +3,6 @@ import React from 'react';
 import { Card, Col, Row } from 'reactstrap';
 
 class AuthPage extends React.Component {
-
   handleLogoClick = () => {
     this.props.history.push('/');
   };
@@ -11,9 +10,9 @@ class AuthPage extends React.Component {
   handleForget = () => {
     this.props.history.push('/forgetPassword');
   };
-  handleSignup =() => {
+  handleSignup = () => {
     this.props.history.push('/signup');
-  }
+  };
   render() {
     return (
       <Row
@@ -21,7 +20,8 @@ class AuthPage extends React.Component {
           height: '100vh',
           justifyContent: 'center',
           alignItems: 'center',
-        }}>
+        }}
+      >
         <Col md={6} lg={4}>
           <Card body>
             <AuthLoginForm
@@ -29,6 +29,7 @@ class AuthPage extends React.Component {
               authState={this.props.authState}
               onLogoClick={this.handleLogoClick}
               onClickSignup={this.handleSignup}
+              props={this.props}
             />
           </Card>
         </Col>

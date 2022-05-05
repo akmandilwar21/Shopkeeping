@@ -1,34 +1,13 @@
 import React, { useState } from 'react';
-import Dropdown from 'react-dropdown';
 import 'react-dropdown/style.css';
-import DatePicker from 'react-date-picker';
 import ServiceForRequest from '../components/Modals/ServiceForRequest';
 import { BsTrashFill } from 'react-icons/bs';
 import { AiFillEdit } from 'react-icons/ai';
-import {
-  UncontrolledButtonDropdown,
-  DropdownToggle,
-  DropdownItem,
-  DropdownMenu,
-  Button,
-  ButtonGroup,
-  Card,
-  CardBody,
-  CardHeader,
-  Col,
-  Modal,
-  ModalHeader,
-  ModalFooter,
-  ModalBody,
-  Row,
-  FormGroup,
-  Label,
-  Input,
-  Table,
-} from 'reactstrap';
+import { Button, Row, Table } from 'reactstrap';
 import EditProperty from '../components/Modals/EditProperty';
 import AddedSuccess from '../components/Modals/AddedSuccess';
 import NewProperty from '../components/Modals/NewProperty';
+import axios from 'axios';
 class Properties extends React.Component {
   state = {
     modal: false,
@@ -43,7 +22,7 @@ class Properties extends React.Component {
     selectedIndex: 0,
     backdrop: true,
     data: { name: '', address: '', pincode: '' },
-    dataEdit: { name: '', address: '', pincode: '' },
+    dataEdit: {},
     dataRequest: {
       typeOfService: '',
       selectedDate: '',
@@ -62,18 +41,11 @@ class Properties extends React.Component {
     selectedStaff: '',
     selectedDate: '',
     additionalDetail: '',
-    typeOfService: ['House Keeping', 'Cleaning', 'Gardening', 'Car Cleaning'],
+    typeOfService: [],
     errors: {},
     errorsEdit: {},
     errorsServiceRequest: {},
-    propertiesList: [
-      { name: 'Alishan', address: 'Noida', pincode: '201309' },
-      { name: 'Mannat', address: 'Mumbai', pincode: '123456' },
-      { name: 'The Luxuary House', address: 'Delhi', pincode: '678082' },
-      { name: 'The Grand Vila', address: 'Odisa', pincode: '121212' },
-      { name: 'The Taj Residency', address: 'Noida', pincode: '201309' },
-      { name: 'A1 House', address: 'Noida', pincode: '201309' },
-    ],
+    propertiesList: [],
     staffList: [
       { type: 'House Keeping', name: ['Abhi', 'Amar', 'Amit'] },
       { type: 'Cleaning', name: ['Rocky', 'Yash', 'Ravi'] },
@@ -82,7 +54,21 @@ class Properties extends React.Component {
     ],
     rightStaff: [],
   };
-
+  async componentDidMount() {
+    let token = sessionStorage.getItem('token');
+    const header = `Authorization: Bearer ${token}`;
+    console.log(header);
+    this.callPropertiesList();
+    console.log(this.state.propertiesList);
+  }
+  callPropertiesList = async () => {
+    let token = sessionStorage.getItem('token');
+    await axios
+      .get('http://3.111.154.180/api/user_properties', {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then(res => this.setState({ propertiesList: res.data }));
+  };
   validateInput = e => {
     switch (e.currentTarget.name) {
       case 'name':
@@ -152,7 +138,7 @@ class Properties extends React.Component {
     let errors = { name: '', address: '', pincode: '' };
     let errorsEdit = { name: '', address: '', pincode: '' };
     let errorsServiceRequest = {};
-    let dataEdit = { name: '', address: '', pincode: '' };
+    let dataEdit = {};
     let dataRequest = {
       typeOfService: '',
       selectedDate: '',
@@ -182,30 +168,29 @@ class Properties extends React.Component {
   closeSuccessModal = () => {
     this.setState({ modal_addedSuccess: false });
   };
-  EditProperty = () => {
+  EditProperty = async () => {
     let data = this.state.dataEdit;
     let errors = this.validate(data);
     this.setState({ errors });
     console.log(errors);
     let errCount = Object.keys(errors).length;
     if (errCount > 0) return;
-
-    let {
-      propertiesList,
-      selectedIndex,
-      selectedName,
-      selectedAddress,
-      selectedPincode,
-    } = this.state;
-
-    propertiesList[selectedIndex].name = data.name;
-    propertiesList[selectedIndex].address = data.address;
-    propertiesList[selectedIndex].pincode = data.pincode;
-    this.setState({
-      propertiesList: propertiesList,
-      modal_editProperty: false,
-    });
-    alert('Edited Successfully');
+    let token = sessionStorage.getItem('token');
+    await axios
+      .put(
+        `http://3.111.154.180/api/properties/${data.id}`,
+        {
+          name: data.name,
+          address: data.address,
+          pincode: data.pincode,
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      )
+      .then(this.setState({ modal_editProperty: false }))
+      .then(alert('Edited Successfully'));
+    this.callPropertiesList();
   };
   validate = data => {
     let errs = {};
@@ -214,7 +199,7 @@ class Properties extends React.Component {
     if (!data.pincode.trim()) errs.pincode = 'Pincode is required';
     return errs;
   };
-  addProperty = () => {
+  addProperty = async () => {
     let { data } = this.state;
     let errors = this.validate(data);
     this.setState({ errors });
@@ -222,24 +207,36 @@ class Properties extends React.Component {
     let errCount = Object.keys(errors).length;
     console.log(errCount);
     if (errCount > 0) return;
-    let { propertiesList } = this.state;
-    propertiesList.push(data);
-    this.setState({ propertiesList });
-    this.setState({ modal_newProperty: false, modal_addedSuccess: true });
+    let token = sessionStorage.getItem('token');
+    await axios
+      .post(
+        'http://3.111.154.180/api/properties',
+        {
+          address: data.address,
+          name: data.name,
+          status: 1,
+          pincode: data.pincode,
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      )
+      .then(res => console.log(res.data))
+      .then(this.setState({ modal_newProperty: false }));
+    //this.setState({ modal_newProperty: false, modal_addedSuccess: true });
+    this.callPropertiesList();
   };
-  handleEditProperty = index => {
-    let { modal_editProperty, propertiesList } = this.state;
-    let { dataEdit } = this.state;
-    dataEdit.name = propertiesList[index].name;
-    dataEdit.address = propertiesList[index].address;
-    dataEdit.pincode = propertiesList[index].pincode;
-    this.setState({
-      modal_editProperty: true,
-      dataEdit: dataEdit,
-    });
+  handleEditProperty = async id => {
+    let token = sessionStorage.getItem('token');
+    let data = await axios
+      .get(`http://3.111.154.180/api/properties/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then(res =>
+        this.setState({ dataEdit: res.data.data, modal_editProperty: true }),
+      );
   };
   handleEditChange = event => {
-    console.log(event.target.name);
     let errString = this.validateInput(event);
     let errors = { ...this.state.errorsEdit };
     errors[event.currentTarget.name] = errString;
@@ -248,45 +245,59 @@ class Properties extends React.Component {
     dataEdit[input.name] = input.value;
     this.setState({ dataEdit: dataEdit, errorsEdit: errors });
   };
-  handleServiceRequest = index => {
-    let { propertiesList } = this.state;
-    let { dataEdit } = this.state;
-    dataEdit.name = propertiesList[index].name;
-    dataEdit.address = propertiesList[index].address;
-    dataEdit.pincode = propertiesList[index].pincode;
-    this.setState({
-      modal_editProperty: true,
-      dataEdit: dataEdit,
-      selectedIndex: index,
-      modal_serviceRequest: true,
-    });
+  handleServiceRequest = async id => {
+    let token = sessionStorage.getItem('token');
+    let data = await axios
+      .get(`http://3.111.154.180/api/properties/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then(res =>
+        this.setState({
+          dataEdit: res.data.data,
+          modal_serviceRequest: true,
+          modal_editProperty: true,
+        }),
+      );
   };
-  handleRemove = selectedName => {
-    let { propertiesList } = this.state;
-    propertiesList = propertiesList.filter(n => n.name !== selectedName);
-    //console.log(selectedIndex);
-    this.setState({
-      modal_editProperty: false,
-      propertiesList: propertiesList,
+  handleRemove = async id => {
+    let token = sessionStorage.getItem('token');
+    await axios.delete(`http://3.111.154.180/api/properties/${id}`, {
+      headers: { Authorization: `Bearer ${token}` },
     });
+    this.callPropertiesList();
   };
-  handleRequest = () => {
-    console.log(this.state.selectedName);
-    this.setState({
-      modal_serviceRequest: false,
-      modal_ServiceForRequest: true,
-      modal_editProperty: false,
-    });
+  handleRequest = async () => {
+    let token = sessionStorage.getItem('token');
+    await axios
+      .get('http://3.111.154.180/api/services', {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then(res => {
+        //console.log(res.data.data);
+        this.setState({
+          typeOfService: res.data.data,
+          modal_serviceRequest: false,
+          modal_ServiceForRequest: true,
+          modal_editProperty: false,
+        });
+      });
+    // this.setState({
+    //   modal_serviceRequest: false,
+    //   modal_ServiceForRequest: true,
+    //   modal_editProperty: false,
+    // });
   };
-  handleSelectService = service => {
-    let { dataRequest, errorsServiceRequest } = this.state;
+  handleSelectService = servicetype => {
+    let { dataRequest, errorsServiceRequest, typeOfService } = this.state;
     errorsServiceRequest.typeOfService = '';
-    dataRequest.typeOfService = service.value;
+    console.log(typeOfService);
+    let selectedService = typeOfService.filter(
+      n => n.name === servicetype.value,
+    );
+    console.log(selectedService);
+    dataRequest.typeOfService = servicetype.value;
     this.setState({ dataRequest: dataRequest });
-    let { staffList } = this.state;
-    let rightStaff = staffList.filter(n => n.type === service.value);
-    console.log(rightStaff);
-    this.setState({ rightStaff: rightStaff[0].name, errorsServiceRequest });
+    this.setState({ errorsServiceRequest });
   };
   handleSelectedStaff = name => {
     let { dataRequest, errorsServiceRequest } = this.state;
@@ -351,9 +362,10 @@ class Properties extends React.Component {
       errors,
       errorsEdit,
       dataRequest,
+      service,
       errorsServiceRequest,
     } = this.state;
-    console.log(errorsServiceRequest);
+    console.log(typeOfService);
     return (
       <div className="p-5">
         <div>
@@ -430,34 +442,34 @@ class Properties extends React.Component {
                   <tr style={{ cursor: 'pointer' }}>
                     <td
                       style={{ textAlign: 'center' }}
-                      onClick={() => this.handleServiceRequest(index)}
+                      onClick={() => this.handleServiceRequest(n.id)}
                     >
                       {index + 1}
                     </td>
                     <td
                       style={{ textAlign: 'center' }}
-                      onClick={() => this.handleServiceRequest(index)}
+                      onClick={() => this.handleServiceRequest(n.id)}
                     >
                       {n.name}
                     </td>
                     <td
                       style={{ textAlign: 'center' }}
-                      onClick={() => this.handleServiceRequest(index)}
+                      onClick={() => this.handleServiceRequest(n.id)}
                     >
                       {n.address}
                     </td>
                     <td
                       style={{ textAlign: 'center' }}
-                      onClick={() => this.handleServiceRequest(index)}
+                      onClick={() => this.handleServiceRequest(n.id)}
                     >
                       {n.pincode}
                     </td>
                     <td style={{ textAlign: 'center' }}>
                       <AiFillEdit
                         style={{ marginRight: '10%' }}
-                        onClick={() => this.handleEditProperty(index)}
+                        onClick={() => this.handleEditProperty(n.id)}
                       />
-                      <BsTrashFill onClick={() => this.handleRemove(n.name)} />
+                      <BsTrashFill onClick={() => this.handleRemove(n.id)} />
                     </td>
                   </tr>
                 );

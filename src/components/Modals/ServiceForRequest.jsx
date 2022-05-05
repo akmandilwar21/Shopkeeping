@@ -28,6 +28,10 @@ import {
 } from 'reactstrap';
 
 const  ServiceForRequest=({modal_ServiceForRequest,props,selectedName, typeOfService, handleSelectService,selectedTypeofService,selectedDate,selectedTime,onChange,rightStaff,selectedStaff,additionalDetail,handleSelectedStaff,closeModal,handleSubmitRequest,errors})=> {
+  let data=[];    
+  for(let i=0;i<typeOfService.length;i++){
+         data.push(typeOfService[i].name)
+  }
        return (
            <div>
                <Modal
@@ -52,7 +56,7 @@ const  ServiceForRequest=({modal_ServiceForRequest,props,selectedName, typeOfSer
                     Type of Service<Label style={{ color: 'red' }}>*</Label>
                   </Label>
                   <Dropdown
-                    options={typeOfService}
+                    options={data}
                     onChange={handleSelectService}
                     value={selectedTypeofService}
                     placeholder="Select Type of Service"

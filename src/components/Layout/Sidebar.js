@@ -123,7 +123,7 @@ class Sidebar extends React.Component {
                 alt=""
               />
               <span className="text-white">
-                ShopKeeping <FaGithub />
+                HouseKeeping <FaGithub />
               </span>
             </SourceLink>
           </Navbar>
